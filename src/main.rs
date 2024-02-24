@@ -5,6 +5,8 @@ use std::path::Path;
 use std::str;
 
 fn main() {
+    env::set_var("RUST_BACKTRACE", "1");
+
     let code = env::args().nth(1).expect("Please enter a search pattern");
     if code == String::from("help") {
         println!("findseq help");
@@ -62,7 +64,7 @@ fn search_verbose(line: String, pattern: String, linum: i32) {
             if i < 5 {
                 let leftflank = &bline[0..i];
                 let rightflank = &bline[i + bpattern.len()..i + bpattern.len() + 5];
-                println!("There is a match at character {} in line {}\nFlanked on the left by {}\nFlankedon right by {}",
+                println!("There is a match at character {} in line {}\nFlanked on left by {}\nFlanked on right by {}",
 			 i,
 			 linum,
 			 str::from_utf8(leftflank).expect("Something went wrong with the left flank sequence"),
@@ -71,8 +73,8 @@ fn search_verbose(line: String, pattern: String, linum: i32) {
             }
             if i + bpattern.len() + 5 > i + bpattern.len() {
                 let leftflank = &bline[i - 5..i];
-                let rightflank = &bline[i + bpattern.len()..i + bpattern.len() + bline.len() - i];
-                println!("There is a match at character {} in line {}\nFlanked on the left by {}\nFlankedon right by {}",
+                let rightflank = &bline[i + bpattern.len()..i + bpattern.len()];
+                println!("There is a match at character  {} in line {}\nFlanked on left by {}\nFlanked on right by {}",
 			 i,
 			 linum,
 			 str::from_utf8(leftflank).expect("Something went wrong with the left flank sequence"),
