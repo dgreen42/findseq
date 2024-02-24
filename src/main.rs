@@ -60,21 +60,33 @@ fn search_verbose(line: String, pattern: String, linum: i32) {
     let bpattern = pattern.as_bytes();
 
     for i in 0..bline.len() - bpattern.len() {
+        let range_test = 5..&bline.len() - 5;
+        if range_test.contains(&i) {
+            println!("{:?}", range_test.contains(&i));
+            let leftflank = &bline[i - 5..i];
+            let rightflank = &bline[i + bpattern.len()..i + bpattern.len() + 5];
+            println!("1. There is a match at character  {} in line {}\nFlanked on left by {}\nFlanked on right by {}",
+		     i,
+		     linum,
+		     str::from_utf8(leftflank).expect("Something went wrong with the left flank sequence"),
+		     str::from_utf8(rightflank).expect("Something went wrong with the right flank sequence")
+	    )
+        }
         if bpattern == &bline[i..i + bpattern.len()] {
             if i < 5 {
                 let leftflank = &bline[0..i];
                 let rightflank = &bline[i + bpattern.len()..i + bpattern.len() + 5];
-                println!("There is a match at character {} in line {}\nFlanked on left by {}\nFlanked on right by {}",
+                println!("2. There is a match at character {} in line {}\nFlanked on left by {}\nFlanked on right by {}",
 			 i,
 			 linum,
 			 str::from_utf8(leftflank).expect("Something went wrong with the left flank sequence"),
 			 str::from_utf8(rightflank).expect("Something went wrong with the right flank sequence")
 		)
             }
-            if i + bpattern.len() + 5 > i + bpattern.len() {
+            if i > bline.len() - 5 {
                 let leftflank = &bline[i - 5..i];
                 let rightflank = &bline[i + bpattern.len()..i + bpattern.len()];
-                println!("There is a match at character  {} in line {}\nFlanked on left by {}\nFlanked on right by {}",
+                println!("3. There is a match at character  {} in line {}\nFlanked on left by {}\nFlanked on right by {}",
 			 i,
 			 linum,
 			 str::from_utf8(leftflank).expect("Something went wrong with the left flank sequence"),
