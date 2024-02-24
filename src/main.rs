@@ -15,31 +15,38 @@ fn main() {
         let option = env::args().nth(3).expect("Please enter an option");
 
         if option == String::from("-v") {
-            let mut linum = 0;
+            let mut longseq = String::new();
             if let Ok(lines) = read_lines(&path) {
                 for line in lines {
-                    linum += 1;
                     let line = line.expect("uh");
                     if line.starts_with('>') {
                         println!("{}", line)
                     } else {
-                        search_verbose(line, code.clone(), linum);
+                        if longseq.is_empty() {
+                            longseq = collapse_lines(String::new(), line.clone());
+                        }
+                        longseq = collapse_lines(longseq, line.clone());
                     }
                 }
+                search_verbose(longseq, code.clone());
             }
-        }
+        };
+
         if option == String::from("-m") {
-            let mut linum = 0;
+            let mut longseq = String::new();
             if let Ok(lines) = read_lines(&path) {
                 for line in lines {
-                    linum += 1;
                     let line = line.expect("uh");
                     if line.starts_with('>') {
                         println!("{}", line)
                     } else {
-                        search_minimal(line, code.clone(), linum);
+                        if longseq.is_empty() {
+                            longseq = collapse_lines(String::new(), line.clone());
+                        }
+                        longseq = collapse_lines(longseq, line.clone());
                     }
                 }
+                search_minimal(longseq, code.clone());
             }
         }
     }
@@ -53,51 +60,27 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-fn search_verbose(line: String, pattern: String, linum: i32) {
+fn search_verbose(line: String, pattern: String) {
     let line = line.to_lowercase();
     let pattern = pattern.to_lowercase();
     let bline = line.as_bytes();
     let bpattern = pattern.as_bytes();
 
     for i in 0..bline.len() - bpattern.len() {
-        let range_test = 5..&bline.len() - 5;
-        if range_test.contains(&i) {
-            println!("{:?}", range_test.contains(&i));
-            let leftflank = &bline[i - 5..i];
-            let rightflank = &bline[i + bpattern.len()..i + bpattern.len() + 5];
-            println!("1. There is a match at character  {} in line {}\nFlanked on left by {}\nFlanked on right by {}",
-		     i,
-		     linum,
-		     str::from_utf8(leftflank).expect("Something went wrong with the left flank sequence"),
-		     str::from_utf8(rightflank).expect("Something went wrong with the right flank sequence")
-	    )
-        }
         if bpattern == &bline[i..i + bpattern.len()] {
-            if i < 5 {
-                let leftflank = &bline[0..i];
-                let rightflank = &bline[i + bpattern.len()..i + bpattern.len() + 5];
-                println!("2. There is a match at character {} in line {}\nFlanked on left by {}\nFlanked on right by {}",
-			 i,
-			 linum,
-			 str::from_utf8(leftflank).expect("Something went wrong with the left flank sequence"),
-			 str::from_utf8(rightflank).expect("Something went wrong with the right flank sequence")
-		)
-            }
-            if i > bline.len() - 5 {
-                let leftflank = &bline[i - 5..i];
-                let rightflank = &bline[i + bpattern.len()..i + bpattern.len()];
-                println!("3. There is a match at character  {} in line {}\nFlanked on left by {}\nFlanked on right by {}",
-			 i,
-			 linum,
-			 str::from_utf8(leftflank).expect("Something went wrong with the left flank sequence"),
-			 str::from_utf8(rightflank).expect("Something went wrong with the right flank sequence")
-		)
-            }
+            let lflank = &bline[i - 5..i];
+            let rflank = &bline[i + bpattern.len()..i + bpattern.len() + 5];
+            println!(
+                "There is a match at {}\nLeft Flank {}\nRight Flank {}",
+                i,
+                str::from_utf8(lflank).expect("Uh"),
+                str::from_utf8(rflank).expect("Oh")
+            )
         }
     }
 }
 
-fn search_minimal(line: String, pattern: String, linum: i32) {
+fn search_minimal(line: String, pattern: String) {
     let line = line.to_lowercase();
     let pattern = pattern.to_lowercase();
     let bline = line.as_bytes();
@@ -110,6 +93,13 @@ fn search_minimal(line: String, pattern: String, linum: i32) {
         }
     }
     if count >= 1 {
-        println!("There are {} occurances in line {}", count, linum);
+        println!("There are {}", count);
     }
+}
+
+fn collapse_lines(mut fulline: String, curline: String) -> String {
+    for ch in curline.chars() {
+        fulline.push(ch);
+    }
+    fulline
 }
