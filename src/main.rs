@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead};
@@ -8,56 +9,49 @@ fn main() {
     env::set_var("RUST_BACKTRACE", "1");
 
     let code = env::args().nth(1).expect("Please enter a search pattern");
-    if code == String::from("help") {
+    if code == "help" {
         println!("findseq help");
     } else {
         let path = env::args().nth(2).expect("Please enter a valid path");
         let option = env::args().nth(3).expect("Please enter an option");
-
-        if option == String::from("-v") {
-            let mut longseq = String::new();
-            if let Ok(lines) = read_lines(&path) {
-                for line in lines {
-                    let line = line.expect("uh");
-                    if line.starts_with('>') {
-                        println!("{}", line)
-                    } else {
-                        if longseq.is_empty() {
-                            longseq = collapse_lines(String::new(), line.clone());
-                        }
-                        longseq = collapse_lines(longseq, line.clone());
-                    }
-                }
-                search_verbose(longseq, code.clone());
-            }
-        };
-
-        if option == String::from("-m") {
-            let mut longseq = String::new();
-            if let Ok(lines) = read_lines(&path) {
-                for line in lines {
-                    let line = line.expect("uh");
-                    if line.starts_with('>') {
-                        println!("{}", line)
-                    } else {
-                        if longseq.is_empty() {
-                            longseq = collapse_lines(String::new(), line.clone());
-                        }
-                        longseq = collapse_lines(longseq, line.clone());
-                    }
-                }
-                search_minimal(longseq, code.clone());
-            }
-        }
+	let hashed_fasta = read_lines(path);
+	
+	for (id, seq) in hashed_fasta.iter() {
+	    println!("ID: {}", id);
+	    let fullseq = collapse_lines(seq.to_string());
+	    if option == "-m" {
+		search_minimal(fullseq.clone(), code.clone());
+	    }
+	    if option == "-v" {
+		search_verbose(fullseq.clone(), code.clone());
+	    }
+	}
     }
 }
 
-fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
+fn read_lines<P>(filename: P) -> HashMap<String, String>
 where
     P: AsRef<Path>,
 {
-    let file = File::open(filename)?;
-    Ok(io::BufReader::new(file).lines())
+    let file = File::open(filename).expect("oh");
+    let buf = io::BufReader::new(file);
+    let mut fasta = HashMap::new();
+    let mut curid = String::new();
+    let mut curseq = String::new();
+
+    for line in buf.lines() {
+        let line = line.expect("Bad Line");
+        if line.starts_with('>') {
+            if !curid.is_empty() {
+                fasta.insert(curid.clone(), curseq.clone());
+                curseq.clear();
+            }
+            curid = line[1..].trim().to_string();
+        } else {
+            curseq.push_str(&line.trim())
+        }
+    }
+    fasta
 }
 
 fn search_verbose(line: String, pattern: String) {
@@ -93,11 +87,12 @@ fn search_minimal(line: String, pattern: String) {
         }
     }
     if count >= 1 {
-        println!("There are {}", count);
+        println!("There are {} occurances", count);
     }
 }
 
-fn collapse_lines(mut fulline: String, curline: String) -> String {
+fn collapse_lines(curline: String) -> String {
+    let mut fulline = String::new();
     for ch in curline.chars() {
         fulline.push(ch);
     }
