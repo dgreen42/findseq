@@ -14,7 +14,7 @@ fn main() {
     } else {
         let path = env::args().nth(2).expect("Please enter a valid path");
         let option = env::args().nth(3).expect("Please enter an option");
-        let hashed_fasta = read_lines(path);
+        let hashed_fasta = read_multplie_fasta(path);
         println!("{:?}", hashed_fasta.values());
 
         for (id, seq) in hashed_fasta.iter() {
@@ -30,7 +30,7 @@ fn main() {
     }
 }
 
-fn read_lines<P>(filename: P) -> HashMap<String, String>
+fn read_multplie_fasta<P>(filename: P) -> HashMap<String, String>
 where
     P: AsRef<Path>,
 {
@@ -47,11 +47,32 @@ where
                 fasta.insert(curid.clone(), curseq.clone());
                 curseq.clear();
             }
-            curid = line[1..].trim().to_string();
+            curid = line[..].trim().to_string();
         } else {
-            curseq.push_str(&line.trim())
+            curseq.push_str(line.trim())
         }
     }
+    fasta
+}
+
+fn read_sinlge_fasta<P>(filename: P) -> HashMap<String, String>
+where
+    P: AsRef<Path>,
+{
+    let file = File::open(filename).expect("oh");
+    let buf = io::BufReader::new(file);
+    let mut fasta = HashMap::new();
+    let mut id = String::new();
+    let mut seq = String::new();
+
+    for line in buf.lines() {
+        let line = line.expect("Bad Line");
+        if line.starts_with('>') {
+            id.push_str(&line);
+        }
+        seq.push_str(&line);
+    }
+    fasta.insert(id.clone(), seq.clone());
     fasta
 }
 
