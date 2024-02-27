@@ -14,7 +14,12 @@ fn main() {
     } else {
         let path = env::args().nth(2).expect("Please enter a valid path");
         let option = env::args().nth(3).expect("Please enter an option");
+        let read = read_lines(path.clone())
+            .expect("oh")
+            .filter(|x| x.starts('>'));
+
         let hashed_fasta = read_multplie_fasta(path);
+
         println!("{:?}", hashed_fasta.values());
 
         for (id, seq) in hashed_fasta.iter() {
@@ -27,7 +32,15 @@ fn main() {
                 search_verbose(fullseq.clone(), code.clone());
             }
         }
-    }
+    };
+}
+
+fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
+where
+    P: AsRef<Path>,
+{
+    let file = File::open(filename)?;
+    Ok(io::BufReader::new(file).lines())
 }
 
 fn read_multplie_fasta<P>(filename: P) -> HashMap<String, String>
