@@ -6,7 +6,7 @@ use std::path::Path;
 use std::str;
 
 fn main() {
-    env::set_var("RUST_BACKTRACE", "1");
+    env::set_var("RUST_BACKTRACE", "0");
 
     let code = env::args().nth(1).expect("Please enter a search pattern");
     if code == "help" {
@@ -14,18 +14,19 @@ fn main() {
     } else {
         let path = env::args().nth(2).expect("Please enter a valid path");
         let option = env::args().nth(3).expect("Please enter an option");
-	let hashed_fasta = read_lines(path);
-	
-	for (id, seq) in hashed_fasta.iter() {
-	    println!("ID: {}", id);
-	    let fullseq = collapse_lines(seq.to_string());
-	    if option == "-m" {
-		search_minimal(fullseq.clone(), code.clone());
-	    }
-	    if option == "-v" {
-		search_verbose(fullseq.clone(), code.clone());
-	    }
-	}
+        let hashed_fasta = read_lines(path);
+        println!("{:?}", hashed_fasta.values());
+
+        for (id, seq) in hashed_fasta.iter() {
+            println!("ID: {}", id);
+            let fullseq = collapse_lines(seq.to_string());
+            if option == "-m" {
+                search_minimal(fullseq.clone(), code.clone());
+            }
+            if option == "-v" {
+                search_verbose(fullseq.clone(), code.clone());
+            }
+        }
     }
 }
 
@@ -60,15 +61,15 @@ fn search_verbose(line: String, pattern: String) {
     let bline = line.as_bytes();
     let bpattern = pattern.as_bytes();
 
-    for i in 0..bline.len() - bpattern.len() {
+    for i in 0..bline.len() - bpattern.len() - 1 {
         if bpattern == &bline[i..i + bpattern.len()] {
             let lflank = &bline[i - 5..i];
             let rflank = &bline[i + bpattern.len()..i + bpattern.len() + 5];
             println!(
-                "There is a match at {}\nLeft Flank {}\nRight Flank {}",
+                "There is a match at {}\nLeft Flank {}\nRight Flank {}\r\n\r\n",
                 i,
-                str::from_utf8(lflank).expect("Uh"),
-                str::from_utf8(rflank).expect("Oh")
+                str::from_utf8(lflank).expect("Could not print left flank"),
+                str::from_utf8(rflank).expect("Could not print right flank")
             )
         }
     }
@@ -89,6 +90,7 @@ fn search_minimal(line: String, pattern: String) {
     if count >= 1 {
         println!("There are {} occurances", count);
     }
+    println!("No occurances");
 }
 
 fn collapse_lines(curline: String) -> String {
