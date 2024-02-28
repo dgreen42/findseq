@@ -107,13 +107,14 @@ fn search_verbose(line: String, pattern: String) {
             let lflank = &bline[i - 5..i];
             let rflank = &bline[i + bpattern.len()..i + bpattern.len() + 5];
             println!(
-                "There is a match at {}\nLeft Flank {}\nRight Flank {}\r\n\r\n",
+                "There is a match at {}\nLeft Flank {}\nRight Flank {}\n",
                 i,
                 str::from_utf8(lflank).expect("Could not print left flank"),
                 str::from_utf8(rflank).expect("Could not print right flank")
             )
         }
     }
+    println!("\n");
 }
 
 fn search_minimal(line: String, pattern: String) {
@@ -129,9 +130,10 @@ fn search_minimal(line: String, pattern: String) {
         }
     }
     if count >= 1 {
-        println!("There are {} occurances", count);
+        println!("There are {} occurances\n", count);
     }
-    println!("No occurances");
+    // COME BACK TO THIS IT IS SAYING NO OCCURANCE FOR THE ONES THAT DO HAVE OCURRANCE
+    println!("No occurances\n");
 }
 
 fn collapse_lines(curline: String) -> String {
