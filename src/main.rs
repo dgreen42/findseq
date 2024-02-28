@@ -14,24 +14,18 @@ fn main() {
     } else {
         let path = env::args().nth(2).expect("Please enter a valid path");
         let option = env::args().nth(3).expect("Please enter an option");
-        let read = read_lines(path.clone())
-            .expect("oh")
-            .filter(|x| x.starts('>'));
-
-        let hashed_fasta = read_multplie_fasta(path);
-
-        println!("{:?}", hashed_fasta.values());
-
-        for (id, seq) in hashed_fasta.iter() {
-            println!("ID: {}", id);
-            let fullseq = collapse_lines(seq.to_string());
-            if option == "-m" {
-                search_minimal(fullseq.clone(), code.clone());
-            }
-            if option == "-v" {
-                search_verbose(fullseq.clone(), code.clone());
-            }
-        }
+        let read = read_lines(&path).expect("could not read file");
+        let count = read
+            .filter(|x| x.as_ref().expect("no").starts_with('>'))
+            .count();
+        if count > 1 {
+            let hashed_fasta = read_multplie_fasta(path);
+            parse_hash(hashed_fasta, option, code);
+        } else {
+            let hashed_fasta = read_single_fasta(path);
+            println!("{:?}", hashed_fasta.values());
+            parse_hash(hashed_fasta, option, code);
+        };
     };
 }
 
@@ -43,11 +37,24 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
+fn parse_hash(hash: HashMap<String, String>, option: String, code: String) {
+    for (id, seq) in hash.iter() {
+        println!("ID: {}", id);
+        let fullseq = collapse_lines(seq.to_string());
+        if option == "-m" {
+            search_minimal(fullseq.clone(), code.clone());
+        }
+        if option == "-v" {
+            search_verbose(fullseq.clone(), code.clone());
+        }
+    }
+}
+
 fn read_multplie_fasta<P>(filename: P) -> HashMap<String, String>
 where
     P: AsRef<Path>,
 {
-    let file = File::open(filename).expect("oh");
+    let file = File::open(filename).expect("Could not read file");
     let buf = io::BufReader::new(file);
     let mut fasta = HashMap::new();
     let mut curid = String::new();
@@ -62,13 +69,13 @@ where
             }
             curid = line[..].trim().to_string();
         } else {
-            curseq.push_str(line.trim())
+            curseq.push_str(line.trim());
         }
     }
     fasta
 }
 
-fn read_sinlge_fasta<P>(filename: P) -> HashMap<String, String>
+fn read_single_fasta<P>(filename: P) -> HashMap<String, String>
 where
     P: AsRef<Path>,
 {
