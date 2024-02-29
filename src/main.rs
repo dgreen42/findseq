@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
 use std::str;
+use std::time::{Duration, Instant};
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "0");
@@ -12,6 +13,8 @@ fn main() {
     if code == "help" {
         println!("findseq help");
     } else {
+        let start = Instant::now();
+
         let path = env::args().nth(2).expect("Please enter a valid path");
         let option = env::args().nth(3).expect("Please enter an option");
         let read = read_lines(&path).expect("could not read file");
@@ -26,6 +29,10 @@ fn main() {
             println!("{:?}", hashed_fasta.values());
             parse_hash(hashed_fasta, option, code);
         };
+
+        let duration = start.elapsed();
+
+        println!("Time elapsed: {:?}", duration);
     };
 }
 
