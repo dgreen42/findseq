@@ -131,9 +131,9 @@ fn search_minimal(line: String, pattern: String) {
     }
     if count >= 1 {
         println!("There are {} occurances\n", count);
+    } else {
+        println!("No occurances\n");
     }
-    // COME BACK TO THIS IT IS SAYING NO OCCURANCE FOR THE ONES THAT DO HAVE OCURRANCE
-    println!("No occurances\n");
 }
 
 fn collapse_lines(curline: String) -> String {
